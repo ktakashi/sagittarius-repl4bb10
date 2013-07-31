@@ -1,4 +1,8 @@
-echo Invoking sash
-LD_LIBRARY_PATH=./app/native/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
-./app/native/lib/sash
+# -*- mode:shell; coding:utf-8-unix; -*-
+# NOT USED
+SASH=./app/native/lib/sash
+
+if [ -x $SASH ]; then
+	$SASH -Dapp/native/modules -Lapp/native/scheme -d app/native/repl.scm
+fi
+
