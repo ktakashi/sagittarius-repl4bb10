@@ -39,6 +39,36 @@ SagittariusRepl::~SagittariusRepl()
 
 QString SagittariusRepl::execute(const QString &expr)
 {
+	// send :datum tag and expression as utf8
+	socket_.write(":datum ");
+	socket_.write(expr.toUtf8());
+	// wait until it's sent
+	socket_.waitForBytesWritten();
+
+	// now read the resonse
+	QString tag = readTag(true);
+
+	// we only have :exit :values and :error
+	if (tag == ":values") {
+		int count = readValuesCount();
+		// TODO handle multiple values properly
+		QString buf;
+		qDebug() << "received count:" << count;
+		for (int i = 0; i < count; i++) {
+			buf += readDatum();
+			buf += "\n";
+		}
+		return buf;
+	} else if (tag == ":error") {
+		QString buf;
+		buf += "error in" + readDatum() + "\n";
+		buf += readDatum();
+		return buf;
+	} else if (tag == ":exit") {
+		return "[exit]";
+	} else {
+		// TODO should we?
+	}
 
 	return "";
 }
@@ -85,14 +115,16 @@ bool SagittariusRepl::initRemoteREPL()
 	QObject::connect(&socket_, SIGNAL(error(QAbstractSocket::SocketError)),
 			this, SLOT(socketError(QAbstractSocket::SocketError)));
 
-	repl_.start("app/native/lib/sash -Dapp/native/modules -Lapp/native/scheme -d app/native/repl.scm");
+	repl_.start("app/native/lib/sash -Dapp/native/modules -Lapp/native/scheme app/native/repl.scm");
 	//repl_.start("/bin/sh", QStringList() << "app/native/invoke.sh");
 	return true;
 }
 
-QString SagittariusRepl::readTag()
+QString SagittariusRepl::readTag(bool wait)
 {
 	QString buf;
+	if (wait) socket_.waitForReadyRead();
+
 	for (;;) {
 		char c;
 		if (!socket_.getChar(&c)) break;
@@ -100,6 +132,39 @@ QString SagittariusRepl::readTag()
 		buf.append(c);
 	}
 	return buf;
+}
+
+int SagittariusRepl::readValuesCount()
+{
+	QString count = readTag();
+	return count.toInt();
+}
+
+QString SagittariusRepl::readDatum()
+{
+	QString buf;
+	char c;
+	if (!socket_.getChar(&c)) return "";
+	// check sanity
+	if (c == '"') {
+		for (;;) {
+			char c;
+			if (!socket_.getChar(&c)) break;
+			if (c == '\\') {
+				if (!socket_.getChar(&c)) break;
+				buf.append(c);
+				continue;
+			}
+			if (c == '"') {
+				// read one more space
+				socket_.getChar(0);
+				break;
+			}
+			buf.append(c);
+		}
+	}
+	return buf;
+
 }
 
 // TODO handle states properly
@@ -122,7 +187,8 @@ void SagittariusRepl::observe(QProcess::ProcessState newState)
 		// connect to remote REPL
 		socket_.connectToHost("localhost", REMOTE_PORT);
 		if (socket_.waitForConnected()) {
-			QString tag = readTag();
+			QString tag = readTag(true);
+			// TODO check tag
 			qDebug() << "Received: " << tag;
 		}
 	}

@@ -22,13 +22,14 @@ public:
 
 	bool initRemoteREPL();
 
-	QString execute(const QString &expr);
+	Q_INVOKABLE QString execute(const QString &expr);
 public slots:
 	void observe(QProcess::ProcessState newState);
 	void socketError(QAbstractSocket::SocketError socketError);
 private:
-	QString readTag();
-
+	QString readTag(bool wait = false);
+	int     readValuesCount();
+	QString readDatum();
 
 	// we are using remote-repl to make things easier...
 	QProcess repl_;

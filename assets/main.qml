@@ -7,14 +7,14 @@ Page {
             layout: StackLayout {
                 orientation: LayoutOrientation.LeftToRight
             }
-            TextField {
+            TextArea {
                 id: expr
                 hintText: "Type expression"
             }
             Button {
                 text: qsTr("Run")
                 onClicked: {
-                    display.text().append(repl.execute(expt.text));
+                    display.text += expr.text + "\n" + repl.execute(expr.text) + "sash>";
                     expr.resetText();
                 }
                 opacity: 1.0
@@ -24,6 +24,7 @@ Page {
         TextArea {
             id: display
             hintText: ""
+            text: "sash>"
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1.0
             }
