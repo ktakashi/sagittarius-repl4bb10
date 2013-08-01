@@ -2,7 +2,6 @@
 import bb.cascades 1.0
 
 Page {
-    id: root
     Container {
         Container {
             layout: StackLayout {
@@ -35,6 +34,9 @@ Page {
             }
             verticalAlignment: VerticalAlignment.Fill
             horizontalAlignment: HorizontalAlignment.Fill
+            onTextChanging: {
+                if (display.text == "") display.text = "sash>"
+            }
         }
 
     }
@@ -45,6 +47,12 @@ Page {
                 runButton.enabled = false;
                 repl.restart();
                 display.text = "sash>";
+            }
+        },
+        ActionItem {
+            title: "Clear"
+            onTriggered: {
+                display.text = "";
             }
         }
     ]
