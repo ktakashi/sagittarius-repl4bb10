@@ -28,7 +28,6 @@ Page {
         TextArea {
             id: display
             hintText: ""
-            text: "sash>"
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1.0
             }
@@ -46,7 +45,6 @@ Page {
             onTriggered: {
                 runButton.enabled = false;
                 repl.restart();
-                display.text = "sash>";
             }
         },
         ActionItem {
@@ -59,6 +57,7 @@ Page {
     // from repl
     function replReady() {
         runButton.enabled = true;
+        display.text = "sash>";
     }
     function replError() {
         runButton.enabled = false;
