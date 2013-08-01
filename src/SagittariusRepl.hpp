@@ -8,6 +8,7 @@
 
 namespace bb { namespace cascades { class Application; }}
 
+class ReplConfig;
 /*!
  * @brief Application pane object
  *
@@ -23,17 +24,31 @@ public:
 	bool initRemoteREPL();
 
 	Q_INVOKABLE QString execute(const QString &expr);
+	Q_INVOKABLE void    restart();
 public slots:
 	void observe(QProcess::ProcessState newState);
 	void socketError(QAbstractSocket::SocketError socketError);
+	void onFinished();
+
+signals:
+	void ready();
+	void error();
+	void finished();
+
 private:
 	QString readTag(bool wait = false);
 	int     readValuesCount();
 	QString readDatum();
+	QString readThing(char delim, bool escape = false, bool wait = false);
+
+	void flushProcess();
 
 	// we are using remote-repl to make things easier...
 	QProcess repl_;
 	QTcpSocket socket_;
+	bool running_;
+	bool error_;
+	ReplConfig *config_;
 };
 
 #endif /* SagittariusRepl_HPP_ */
