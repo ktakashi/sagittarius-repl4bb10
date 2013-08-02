@@ -17,7 +17,8 @@ Page {
                 enabled: false; // this will be enabled in control
                 onClicked: {
                     runButton.enabled = false;
-                    display.text += expr.text + "\n" + repl.execute(expr.text) + "sash>";
+                    var e = trim(expr.text);
+                    display.text += e + "\n" + repl.execute(e) + "sash>";
                     expr.resetText();
                     runButton.enabled = true;
                 }
@@ -28,6 +29,7 @@ Page {
         TextArea {
             id: display
             hintText: ""
+            text: "Starting..."
             layoutProperties: StackLayoutProperties {
                 spaceQuota: 1.0
             }
@@ -44,6 +46,7 @@ Page {
             title: "Restart"
             onTriggered: {
                 runButton.enabled = false;
+                display.text = "Restarting..."
                 repl.restart();
             }
         },
@@ -54,6 +57,10 @@ Page {
             }
         }
     ]
+    function trim(s) {
+        return s.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+    }
+    
     // from repl
     function replReady() {
         runButton.enabled = true;

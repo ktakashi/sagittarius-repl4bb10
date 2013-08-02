@@ -57,7 +57,14 @@ SagittariusRepl::~SagittariusRepl()
 
 QString SagittariusRepl::execute(const QString &expr)
 {
-	if (!socket_.isValid()) return "socket error";
+	if (expr.length() == 0) return "*error* empty expression\n";
+	if (socket_.state() != QAbstractSocket::ConnectedState) {
+		qDebug() << "Socket state: " << socket_.state();
+		// we know it'll be restarted so don't emit error sinal when process is
+		// restarting
+		if (error_) error_ = false;
+		return "*error* socket error. Please restart REPL.\n";
+	}
 	// send :datum tag and expression as utf8
 	socket_.write(":datum ");
 	socket_.write(expr.toUtf8());
@@ -143,6 +150,8 @@ bool SagittariusRepl::initRemoteREPL()
 	if (!sanity("app/native/lib/libgcmt-dll.so")) return false;
 	if (!sanity("app/native/lib/libsagittarius.so")) return false;
 
+	// reset error flag
+	error_ = false;
 	// remove if exists
 	QFile mark(MARK_FILE);
 	if (mark.exists()) mark.remove();
